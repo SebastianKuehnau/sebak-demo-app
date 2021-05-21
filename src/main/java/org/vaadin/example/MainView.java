@@ -58,5 +58,4 @@ public class MainView extends VerticalLayout {
 
         add(textField, button);
     }
-
 }
