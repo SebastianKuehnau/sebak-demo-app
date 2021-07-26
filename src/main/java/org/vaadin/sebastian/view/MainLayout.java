@@ -4,12 +4,15 @@ import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.router.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainLayout extends HorizontalLayout implements RouterLayout {
+@Push
+public class MainLayout extends HorizontalLayout implements RouterLayout, AppShellConfigurator {
 
     private final VerticalLayout menu = new VerticalLayout();
     private final Div content = new Div();
