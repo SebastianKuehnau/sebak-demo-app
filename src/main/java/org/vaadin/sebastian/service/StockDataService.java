@@ -66,7 +66,8 @@ public class StockDataService {
             this.price = price;
         }
 
-        public StockData(long l, String name) {
+        public StockData(Long id, String name) {
+            this.id = id;
             this.name = name;
         }
 
