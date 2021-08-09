@@ -10,15 +10,4 @@
   max-width: 250px;
 }
 
-span.updatable {
-  color: black;
-  animation: updateCell;
-  animation-delay: 0s;
-  animation-duration: 2s;
-}
-
-@keyframes updateCell {
-  from {color: red;}
-  to {color: black;}
-}
 
