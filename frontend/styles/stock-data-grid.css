@@ -1,0 +1,13 @@
+.warning {
+    animation-name: animation;
+    animation-duration: 2s;
+}
+
+.normal {
+    background-color: none;
+}
+
+@keyframes animation {
+    from {background-color: yellow;}
+    to {background-color: none;}
+}

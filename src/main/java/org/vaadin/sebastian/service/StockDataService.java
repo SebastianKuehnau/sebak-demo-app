@@ -60,6 +60,8 @@ public class StockDataService {
         private String name ;
         private BigDecimal price = BigDecimal.ZERO;
 
+        private boolean updated = false ;
+
         public StockData(Long id, String name, BigDecimal price) {
             this.id = id ;
             this.name = name;
@@ -89,6 +91,14 @@ public class StockDataService {
 
         public void setPrice(BigDecimal price) {
             this.price = price;
+        }
+
+        public boolean isUpdated() {
+            return updated;
+        }
+
+        public void setUpdated(boolean updated) {
+            this.updated = updated;
         }
     }
 }

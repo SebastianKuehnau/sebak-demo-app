@@ -1,5 +1,6 @@
 package org.vaadin.sebastian.view;
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -12,7 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.vaadin.sebastian.entity.Person;
-import org.vaadin.sebastian.service.BitcoinService;
 import org.vaadin.sebastian.service.PersonService;
 import org.vaadin.sebastian.util.SpringUtil;
 
@@ -35,6 +35,7 @@ public class LazyGridView extends VerticalLayout {
 
     public LazyGridView() {
         grid.setColumns("id", "lastname", "firstname", "email");
+
         grid.setMultiSort(true);
 
         headerRow = grid.appendHeaderRow();
