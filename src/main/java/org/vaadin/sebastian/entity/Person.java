@@ -5,6 +5,7 @@ import org.ajbrown.namemachine.Name;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import java.util.Objects;
 
 @Entity
 public class Person {
@@ -16,6 +17,7 @@ public class Person {
     private String lastname ;
     private String firstname ;
     private String email ;
+    private Integer counter ;
 
     public Person() {
     }
@@ -24,6 +26,11 @@ public class Person {
         this.lastname = lastname;
         this.firstname = firstname;
         this.email = email;
+    }
+
+    public Person(String lastname, String firstname, String email, Integer counter) {
+        this(lastname, firstname, email);
+        this.counter = counter;
     }
 
     public Long getId() {
@@ -58,6 +65,14 @@ public class Person {
         this.email = email;
     }
 
+    public Integer getCounter() {
+        return counter;
+    }
+
+    public void setCounter(Integer counter) {
+        this.counter = counter;
+    }
+
     public static class Builder {
         public static Person create(Name name) {
             String email = name.getFirstName() + "." + name.getLastName() + "@gmail.com";
@@ -65,4 +80,16 @@ public class Person {
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Person person = (Person) o;
+        return Objects.equals(lastname, person.lastname) && Objects.equals(firstname, person.firstname) && Objects.equals(email, person.email) && Objects.equals(counter, person.counter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(lastname, firstname, email, counter);
+    }
 }

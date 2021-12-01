@@ -1,6 +1,6 @@
 package org.vaadin.sebastian.view;
 
-import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -9,9 +9,9 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.vaadin.sebastian.entity.Person;
 import org.vaadin.sebastian.service.PersonService;
 import org.vaadin.sebastian.util.SpringUtil;
@@ -29,12 +29,15 @@ public class LazyGridView extends VerticalLayout {
     PersonService personService ;
 
     private final Grid<Person> grid = new Grid<>(Person.class);
-    final TextField lastnameField = new FilterTextField();
-    final TextField firstnameField = new FilterTextField();
-    final TextField emailField = new FilterTextField();
+
+    final FilterTextField lastnameField = new FilterTextField();
+    final FilterTextField firstnameField = new FilterTextField();
+    final FilterTextField emailField = new FilterTextField();
+    final FilterComboBox<Integer> counterComboBox = new FilterComboBox<>();
 
     public LazyGridView() {
-        grid.setColumns("id", "lastname", "firstname", "email");
+
+        grid.setColumns("id", "lastname", "firstname", "email", "counter");
 
         grid.setMultiSort(true);
 
@@ -42,17 +45,26 @@ public class LazyGridView extends VerticalLayout {
         headerRow.getCell(grid.getColumnByKey("lastname")).setComponent(lastnameField);
         headerRow.getCell(grid.getColumnByKey("firstname")).setComponent(firstnameField);
         headerRow.getCell(grid.getColumnByKey("email")).setComponent(emailField);
+        headerRow.getCell(grid.getColumnByKey("counter")).setComponent(counterComboBox);
 
         grid.setSizeFull();
 
         grid.setPageSize(50);
 
         add(grid);
+
         setSizeFull();
     }
 
     @PostConstruct
     public void init() {
+
+        var personExampleMatcher = ExampleMatcher
+                .matching()
+                .withIgnoreNullValues()
+                .withIgnoreCase()
+                .withStringMatcher(ExampleMatcher.StringMatcher.STARTING);
+
         //DataProvider with callback to send query with parameter to DB
         grid.setItems(
             // First callback fetches items based on a query
@@ -63,26 +75,69 @@ public class LazyGridView extends VerticalLayout {
                 // The number of items to load
                 int limit = query.getLimit();
 
-                Sort sort = SpringUtil.convertSortOrders(query.getSortOrders());
+                var sort = SpringUtil.convertSortOrders(query.getSortOrders());
 
                 // Spring specific API to page queries
-                final PageRequest pageRequest = PageRequest.of((offset / limit), limit, sort);
+                var pageRequest = PageRequest.of((offset / limit), limit, sort);
+
+                //DTO for filtering
+                var personFilterDto = new Person(lastnameField.getValue(), firstnameField.getValue(), emailField.getValue(), counterComboBox.getValue());
 
                 long startTime = System.currentTimeMillis() ;
-                // pass parameter to backend
-                Page<Person> allByLastnameContainingIgnoreCaseAndFirstnameContainingIgnoreCaseAndEmailContainingIgnoreCase = personService.findAllByLastnameContainingIgnoreCaseAndFirstnameContainingIgnoreCaseAndEmailContainingIgnoreCase(lastnameField.getValue(), firstnameField.getValue(), emailField.getValue(), pageRequest);
 
-                log.info("Query time is " + (System.currentTimeMillis() - startTime));
+                var personPage = personService.findAll(Example.of(personFilterDto, personExampleMatcher), pageRequest);
 
-                return allByLastnameContainingIgnoreCaseAndFirstnameContainingIgnoreCaseAndEmailContainingIgnoreCase.stream();
+                log.info("Grid Query time is " + (System.currentTimeMillis() - startTime));
+
+                return personPage.stream();
         });
+
+        counterComboBox.setItems(query -> {
+            // The index of the first item to load
+            int offset = query.getOffset();
+
+            // The number of items to load
+            int limit = query.getLimit();
+
+            var sort = SpringUtil.convertSortOrders(query.getSortOrders());
+
+            // Spring specific API to page queries
+            var pageRequest = PageRequest.of((offset / limit), limit, sort);
+
+            long startTime = System.currentTimeMillis() ;
+
+            //DTO for filtering
+            var personFilterDto = new Person(lastnameField.getValue(), firstnameField.getValue(), emailField.getValue(), counterComboBox.getValue());
+
+            var personStream = personService.findAll(Example.of(personFilterDto, personExampleMatcher), pageRequest)
+                    .stream()
+                    .map(Person::getCounter)
+                    .distinct()
+                    .sorted();
+
+            log.info("ComboBox Query time is " + (System.currentTimeMillis() - startTime));
+
+            return personStream;
+        });
+    }
+
+    private void update() {
+        grid.getDataProvider().refreshAll();
+        counterComboBox.getDataProvider().refreshAll();
     }
 
     public class FilterTextField extends TextField {
         public FilterTextField() {
-            super(event-> grid.getDataProvider().refreshAll());
+            super(event -> update());
             setClearButtonVisible(true);
             setValueChangeMode(ValueChangeMode.EAGER);
+        }
+    }
+
+    public class FilterComboBox<T> extends ComboBox<T> {
+        public FilterComboBox() {
+            addSelectedItemChangeListener(event -> update());
+            setClearButtonVisible(true);
         }
     }
 }

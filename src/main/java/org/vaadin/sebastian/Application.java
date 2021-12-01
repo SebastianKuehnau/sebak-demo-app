@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.vaadin.sebastian.entity.Person;
 import org.vaadin.sebastian.service.PersonService;
 
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -25,7 +27,7 @@ public class Application extends SpringBootServletInitializer {
     }
 
     final static Logger logger = Logger.getLogger("InitDataService");
-    protected static final int COUNT = 100000;
+    protected static final int COUNT = 10000;
 
     @Bean
     public CommandLineRunner createDemoDataIfNeeded(PersonService personService) {
@@ -40,13 +42,19 @@ public class Application extends SpringBootServletInitializer {
             var names = generator.generateNames(COUNT);
 
             var personList = names.stream()
-                    .map(name -> Person.Builder.create(name))
-                    .collect(Collectors.toSet());
+                    .map(name -> {
+                        var person = Person.Builder.create(name);
+
+                        var counter = ThreadLocalRandom.current().nextInt(10) + 1 ;
+                        person.setCounter(counter) ;
+
+                        return person;
+                    })
+                    .collect(Collectors.toList());
 
             personService.saveAll(personList);
 
             logger.info("generated " + personService.count() + " items");
         };
     }
-
 }
