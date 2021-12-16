@@ -7,8 +7,8 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.PageRequest;
@@ -21,12 +21,9 @@ import javax.annotation.PostConstruct;
 @Route(value = "lazy-grid", layout = MainLayout.class)
 public class LazyGridView extends VerticalLayout {
 
-    Logger log = Logger.getLogger(LazyGridView.class);
+    Logger log = LoggerFactory.getLogger(LazyGridView.class);
 
-    private final HeaderRow headerRow;
-
-    @Autowired
-    PersonService personService ;
+    private final PersonService personService;
 
     private final Grid<Person> grid = new Grid<>(Person.class);
 
@@ -35,13 +32,14 @@ public class LazyGridView extends VerticalLayout {
     final FilterTextField emailField = new FilterTextField();
     final FilterComboBox<Integer> counterComboBox = new FilterComboBox<>();
 
-    public LazyGridView() {
+    public LazyGridView(PersonService personService) {
+        this.personService = personService;
 
         grid.setColumns("id", "lastname", "firstname", "email", "counter");
 
         grid.setMultiSort(true);
 
-        headerRow = grid.appendHeaderRow();
+        HeaderRow headerRow = grid.appendHeaderRow();
         headerRow.getCell(grid.getColumnByKey("lastname")).setComponent(lastnameField);
         headerRow.getCell(grid.getColumnByKey("firstname")).setComponent(firstnameField);
         headerRow.getCell(grid.getColumnByKey("email")).setComponent(emailField);
